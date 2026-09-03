@@ -17,7 +17,7 @@ export default function WeatherNode({ id, data }: NodeProps<WeatherNodeType>) {
       <Handle type="target" position={Position.Left} id="input" />
       <Handle type="source" position={Position.Right} id="output" />
       <div style={{ fontWeight: 'bold' }}>☀️ 天气查询</div>
-      <input type="text" placeholder="输入城市名 (如 Beijing)" value={city} onChange={(e) => { setCity(e.target.value); updateNodeData(id, { city: e.target.value }); }} style={{ width: '100%', marginTop: '4px', padding: '4px' }} />
+      <input type="text" placeholder="输入城市名（如 北京）" value={city} onChange={(e) => { setCity(e.target.value); updateNodeData(id, { city: e.target.value }); }} style={{ width: '100%', marginTop: '4px', padding: '4px' }} />
     </div>
   );
 }
