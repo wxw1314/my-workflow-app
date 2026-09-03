@@ -13,7 +13,7 @@
   | 条件分支 | `conditionNode` | 用 `expr-eval` 表达式判断走 `true` / `false` 分支 |
   | HTTP 请求 | `httpRequestNode` | 调用任意外部 REST API |
   | 数据库查询 | `databaseNode` | 通过 `/api/db/query` 查询 MongoDB |
-  | 天气查询 | `weatherNode` | 调用 OpenWeatherMap 接口 |
+  | 天气查询 | `weatherNode` | 调用和风天气 API，支持中文城市名 |
   | 通知 | `notificationNode` | 通过 `/api/send/email` 发送邮件 |
 - **流式执行**：`/api/run-workflow` 以 `ReadableStream` 逐字符返回结果，前端有打字机效果。
 - **条件表达式沙箱**：LLM 输出会作为变量 `input` 传入 `expr-eval` 求值，比 `eval` 安全。
@@ -32,8 +32,8 @@
 
 - Node.js ≥ 20
 - MongoDB（本地或 Atlas，需要用到数据库节点时）
-- 一个 OpenAI 兼容的 LLM API Key（用到 LLM 节点时）
-- OpenWeatherMap API Key（用到天气节点时）
+- OpenAI 兼容的 LLM API Key（用到 LLM 节点或 Agent 节点时）
+- 和风天气 API Key + 项目专属 API Host（用到天气节点时，见下方"环境变量"）
 
 ## 快速开始
 
@@ -63,8 +63,11 @@ OPENAI_API_KEY=sk-xxx              # 或 DEEPSEEK_API_KEY
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
 
-# ---- 天气节点 ----
-WEATHER_API_KEY=xxx                # openweathermap.org
+# ---- 天气节点（和风天气 QWeather）----
+# 2025 起和风弃用共享域名 devapi/geoapi.qweather.com，
+# 必须使用控制台里项目专属的 API Host（形如 xxxxxx.re.qweatherapi.com）。
+WEATHER_API_KEY=xxx
+QWEATHER_API_HOST=xxxxxx.re.qweatherapi.com
 
 # ---- 内部接口回调（通知节点会用到）----
 NEXTAUTH_URL=http://localhost:3000
@@ -115,6 +118,8 @@ models/
 
 ## 已知注意点
 
+- **和风天气必须用专属 Host**：控制台 → 项目管理里复制专属 API Host 填到 `QWEATHER_API_HOST`，共享域名 `devapi/geoapi.qweather.com` 会直接 404。鉴权用请求头 `X-QW-Api-Key`（代码已封装好）。
+- **Agent 节点多工具并行调用**：LLM 返回多个 `tool_calls` 时，代码会并行执行完所有工具再一起回传给 LLM——遵守 OpenAI 协议"每个 `tool_call_id` 都必须有对应 `role:'tool'` 回复"的硬性要求，否则会 400。
 - **Mongoose 集合名默认复数小写**：`model('Product', ...)` 对应集合 `products`。如果你的表在 `my-project` 库里叫其它名字，需在 `model` 第三个参数显式指定。
 - **`MONGODB_URI` 一定要带库名**，否则默认连 `test`。
 - **Next.js 16 有破坏性改动**：写代码前先读 `node_modules/next/dist/docs/` 里的对应文档（详见 `AGENTS.md`）。
